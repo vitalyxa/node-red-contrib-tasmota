@@ -29,34 +29,50 @@ module.exports = function (RED) {
       const payload = msg.payload
       const topic = msg.topic || 'switch1'
 
-      var channel = topic.toLowerCase().startsWith('switch') ? this.extractChannelNum(topic) : 1
-      var command = 'POWER' + channel
+      const channel = topic.toLowerCase().startsWith('switch') ? this.extractChannelNum(topic) : 1
+      const command = 'POWER' + channel
 
-      // Switch On/Off for booleans and 1/0 (int or str)
-      if (payload === true || payload === 1 || payload === '1') {
-        this.MQTTPublish('cmnd', command, onValue)
-        return
-      }
-      if (payload === false || payload === 0 || payload === '0') {
-        this.MQTTPublish('cmnd', command, offValue)
-        return
+      let receivedValue, targetValue
+      const options = { retain: this.config.retainIncomingCmd }
+
+      if (typeof payload === 'object') {
+        receivedValue = payload.state
+        if (typeof payload.retain === 'boolean') {
+          options.retain = payload.retain
+        }
+        if (typeof payload.qos === 'number') {
+          options.qos = payload.qos
+        }
+      } else {
+        receivedValue = payload
       }
 
-      // String payload: on/off, true/false, toggle (not case sensitive)
-      if (typeof payload === 'string') {
-        switch (payload.toLowerCase()) {
+      if (typeof receivedValue === 'string') {
+        switch (receivedValue.toLowerCase()) {
+          case '1':
           case 'on':
-          case 'true':
-            this.MQTTPublish('cmnd', command, onValue)
-            return
+          case 'true': {
+            targetValue = onValue
+            break
+          }
+          case '0':
           case 'off':
           case 'false':
-            this.MQTTPublish('cmnd', command, offValue)
-            return
+            targetValue = offValue
+            break
           case 'toggle':
-            this.MQTTPublish('cmnd', command, toggleValue)
-            return
+            targetValue = toggleValue
+            break
         }
+      } else if (receivedValue === true || receivedValue === 1) {
+        targetValue = onValue
+      } else if (receivedValue === false || receivedValue === 0) {
+        targetValue = offValue
+      }
+
+      if (targetValue !== undefined) {
+        this.MQTTPublish('cmnd', command, targetValue, options)
+        return
       }
 
       this.warn('Invalid payload received on input')

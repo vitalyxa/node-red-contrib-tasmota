@@ -9,6 +9,7 @@ const TASMOTA_DEFAULTS = {
   name: '',
   outputs: 1,
   uidisabler: false,
+  retainIncomingCmd: false,
   // advanced
   fullTopic: '%prefix%/%topic%/',
   cmndPrefix: 'cmnd',
@@ -141,7 +142,7 @@ class BaseTasmotaNode {
   }
 
   onNodeInput (msg) {
-    // Subclasses can override to receive input messagges from NodeRed
+    // Subclasses can override to receive input messages from NodeRed
   }
 
   setNodeStatus (fill, text, shape) {
@@ -180,9 +181,9 @@ class BaseTasmotaNode {
     }
   }
 
-  MQTTPublish (prefix, command, payload) {
+  MQTTPublish (prefix, command, payload, options) {
     var fullTopic = this.buildFullTopic(prefix, command)
-    this.mqttClient.publish(fullTopic, payload)
+    this.mqttClient.publish(fullTopic, payload, options)
     // TODO  qos and retain options
   }
 

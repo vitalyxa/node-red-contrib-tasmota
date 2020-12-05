@@ -53,6 +53,25 @@ or can be configured to have N outputs (one for each channel).
 ![Switch Flow1](media/switch1.png?raw=true)
 ![Switch Flow2](media/switch2.png?raw=true)
 
+#### Turn on/off (simple mode)
+To simply changes the light on / off state just send a **msg.payload** (without any topic) 
+using one of the following values:
+
+| Topic    | Payload  | Values                                              |
+|:--------:|:--------:|-----------------------------------------------------|
+|          |  boolean | true / false                                        |
+|          |    int   | 1 / 0                                               |
+|          |   string | 1 / 0 / on / off / true / false / toggle            |
+
+#### Input (object mode)
+Can receive object on input for controlling QOS and retain MQTT flags
+```
+    {
+        "state": any "Turn on/off (simple mode)" value described below ,
+        "retain": boolean,
+        "qos": number
+}
+```
 
 ### Tasmota Sensor node
 
